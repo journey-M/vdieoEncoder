@@ -1,3 +1,5 @@
 encoder
 *.o
 .vscode
+*.yuv
+*.264

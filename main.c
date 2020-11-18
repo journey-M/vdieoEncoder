@@ -8,12 +8,17 @@
 #include <pthread.h>
 
 #include "camera.h"
+#include "yuv_saver.h"
 
 
 #define LOAD_BGRA    0  
 #define LOAD_RGB24   0  
 #define LOAD_BGR24   0  
 #define LOAD_YUV422P 1  
+
+#define SAVE_YUV 0
+#define SAVE_X264 1
+
 
 int screen_w=640,screen_h=480;  
 const int pixel_w=640,pixel_h=480;  
@@ -44,6 +49,16 @@ void onGetPictureBuffer(struct picbuffer *pBuffer){
     #elif LOAD_YUV422P  
         SDL_UpdateTexture( sdlTexture, &sdlRect, pBuffer->start, pixel_w*2);    
 
+        #if SAVE_YUV
+            //本地保存yuv原始数据
+            yuv_saver(pBuffer->start, pBuffer->length);
+        #endif
+
+        #if SAVE_X264
+            //本地保存x264数据
+            endcode_frame(pBuffer->start,  pBuffer->length);
+
+        #endif
     #endif  
 
         //FIX: If window is resize  
@@ -109,6 +124,8 @@ int main(int argc ,char* argv[] ){
         sdlRect.y = 0;
 
     openCamera(onGetPictureBuffer, V4L2_PIX_FMT_YUYV);
+    //初始化x264
+    init_endcode();    
 
 
     pthread_t tid; 
