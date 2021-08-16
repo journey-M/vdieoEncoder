@@ -8,7 +8,9 @@
 
 void init_endcode();
 
-void endcode_frame(void *yuvframe, size_t yunlength);
+void endcode_frame(int pts, void *yuvframe,int size, int width, int height);
+
+void yuyv_to_i420(const unsigned char *in, unsigned char *out, unsigned int width ,unsigned int height);
 
 
 

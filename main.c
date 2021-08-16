@@ -9,14 +9,14 @@
 
 #include "camera.h"
 #include "yuv_saver.h"
-
+#include "microphone.h"
 
 #define LOAD_BGRA    0  
 #define LOAD_RGB24   0  
 #define LOAD_BGR24   0  
-#define LOAD_YUV422P 1  
+#define LOAD_YUV422P 1
 
-#define SAVE_YUV 0
+#define SAVE_YUV 1
 #define SAVE_X264 1
 
 
@@ -27,6 +27,7 @@ int quit = 0;
 SDL_Texture* sdlTexture;
 SDL_Rect sdlRect;     
 SDL_Renderer* sdlRenderer;
+int pts = 0;
 
 /**
  * 获取到图片的buffer
@@ -44,8 +45,7 @@ void onGetPictureBuffer(struct picbuffer *pBuffer){
     #elif LOAD_RGB24|LOAD_BGR24  
         //change 24bit to 32 bit  
         //and in Windows we need to change Endian  
-        CONVERT_24to32(buffer,buffer_convert,pixel_w,pixel_h);  
-        SDL_UpdateTexture( sdlTexture, NULL, buffer_convert, pixel_w*4);    
+        SDL_UpdateTexture( sdlTexture, NULL, pBuffer->start, pixel_w*3);    
     #elif LOAD_YUV422P  
         SDL_UpdateTexture( sdlTexture, &sdlRect, pBuffer->start, pixel_w*2);    
 
@@ -56,7 +56,8 @@ void onGetPictureBuffer(struct picbuffer *pBuffer){
 
         #if SAVE_X264
             //本地保存x264数据
-            endcode_frame(pBuffer->start,  pBuffer->length);
+            endcode_frame(pts, pBuffer->start, pBuffer->length, pBuffer->width, pBuffer->height);
+            pts++;
 
         #endif
     #endif  
@@ -87,6 +88,20 @@ void renderThread(){
 }
 
 
+/**
+ * 采集音频
+ */ 
+void captureAudio(){
+
+    while (!quit)
+    {
+        //fprintf(stderr, "audio  captuing...   \n");
+
+    }
+    
+}
+
+
 int main(int argc ,char* argv[] ){
 
     if(SDL_Init(SDL_INIT_EVERYTHING)) {    
@@ -109,7 +124,7 @@ int main(int argc ,char* argv[] ){
     //Note: ARGB8888 in "Little Endian" system stores as B|G|R|A  
     pixformat= SDL_PIXELFORMAT_ARGB8888;    
     #elif LOAD_RGB24  
-        pixformat= SDL_PIXELFORMAT_RGB888;    
+        pixformat= SDL_PIXELFORMAT_RGB24;    
     #elif LOAD_BGR24  
         pixformat= SDL_PIXELFORMAT_BGR888;    
     #elif LOAD_YUV422P  
@@ -128,12 +143,16 @@ int main(int argc ,char* argv[] ){
     init_endcode();    
 
 
-    pthread_t tid; 
-    int ret = pthread_create(&tid, NULL, renderThread, NULL);
+    //打开麦克风
+    openMicrophone();
+
+    //创建采集线程
+    pthread_t tidVideo, tidAudio; 
+    int ret = pthread_create(&tidVideo, NULL, renderThread, NULL);
+    ret = pthread_create(&tidAudio, NULL, captureAudio, NULL);
 
 
     //sdl事件线程
-
     SDL_Event event;
     while (!quit)
     {

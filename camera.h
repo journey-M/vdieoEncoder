@@ -7,6 +7,8 @@
 struct picbuffer
 {
     void* start;
+    int width ;
+    int height;
     size_t length;
 };
 

@@ -7,12 +7,12 @@
 
 #include "yuv_saver.h"
 
-FILE *file_fd;
+FILE *file_fd = NULL;
 
 
 void yuv_saver(void *yuv_frame, size_t length){
 
-    if (!file_fd)
+    if (file_fd == NULL)
     {
         file_fd = fopen("abc.yuv", "wb");
     }

@@ -1,8 +1,8 @@
 CC = gcc -g
 
 
-encoder: main.o camera.o yuv_saver.o encoder_x264.o
-		gcc -g $^  -o encoder -lSDL2 -lx264 -lSDL2_image -lavutil -lavformat -lavcodec -lswscale -lswresample -lpthread
+encoder: main.o camera.o yuv_saver.o encoder_x264.o microphone.o
+		gcc -g $^  -o encoder -lSDL2 -lx264 -lSDL2_image -lavutil -lasound -lavformat -lavcodec -lswscale -lswresample -lpthread
 
 # player: decVideo.o main.o 
 # 		gcc -g decVideo.o  main.o  -o player -lSDL2 -lSDL2_image -lavformat -lavutil -lavcodec -lswscale -lswresample
@@ -18,6 +18,9 @@ yuv_saver.o : yuv_saver.c
 
 encoder_x264.o :encoder_x264.c
 	gcc -g -c $^ -lx264
+
+microphone.o :microphone.c
+	gcc -g -c $^ -lasound
 
 .PHONY: clean
 clean: 

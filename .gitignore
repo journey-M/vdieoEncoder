@@ -3,3 +3,7 @@ encoder
 .vscode
 *.yuv
 *.264
+*.h264
+GPATH
+GRTAGS
+GTAGS
