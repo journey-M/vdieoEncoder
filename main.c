@@ -10,6 +10,7 @@
 #include "camera.h"
 #include "yuv_saver.h"
 #include "microphone.h"
+#include "push_stream.h"
 
 #define LOAD_BGRA    0  
 #define LOAD_RGB24   0  
@@ -28,6 +29,18 @@ SDL_Texture* sdlTexture;
 SDL_Rect sdlRect;     
 SDL_Renderer* sdlRenderer;
 int pts = 0;
+
+/**
+ * 推送rtmp数据
+ */
+void pushStreamData(){
+
+  unsigned char* encode ;
+  int len;
+//  get_encoded_data(&encode, &len);
+
+
+}
 
 /**
  * 获取到图片的buffer
@@ -56,8 +69,9 @@ void onGetPictureBuffer(struct picbuffer *pBuffer){
 
         #if SAVE_X264
             //本地保存x264数据
-            endcode_frame(pts, pBuffer->start, pBuffer->length, pBuffer->width, pBuffer->height);
-            pts++;
+            // endcode_frame(pts, pBuffer->start, pBuffer->length, pBuffer->width, pBuffer->height);
+            // pts++;
+            //pushStreamData();
 
         #endif
     #endif  
@@ -145,6 +159,11 @@ int main(int argc ,char* argv[] ){
 
     //打开麦克风
     openMicrophone();
+
+
+    //初始化rtmp
+    initRtmp();
+
 
     //创建采集线程
     pthread_t tidVideo, tidAudio; 

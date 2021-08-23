@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <malloc.h>
 #include <stdint.h>
+#include <time.h>
 
 #include <x264.h>
 #include "yuv_saver.h"
@@ -13,19 +14,33 @@
 FILE *fd_x264;
 
 x264_t *handler;
+int sps_len;
+int pps_len;
+unsigned char sps[30];
+unsigned char pps[10];
+int first = 0;
 
 int width = 640;
 int height = 480;
 
 u_int8_t * x264_buffer;
+int lastBufferSize = 0;
 x264_param_t *params;
 x264_picture_t *picture;
 
-static void writ_file(void * data, ssize_t len){
+static void writ_x264_encoded(void * data, ssize_t len){
 
   fwrite(data,len , 1,fd_x264);
 
 }
+
+int get_encoded_data(unsigned char **destPtr, int *size){
+  *size = lastBufferSize;
+  *destPtr = x264_buffer;
+  return 1;
+}
+
+
 
 void init_endcode(){
 
@@ -111,11 +126,32 @@ void endcode_frame(int pts, void *yuyvframe,int size,  int width , int height){
   for (size_t i = 0; i < nNal; i++)
   {
     memcpy(p_out,nal[i].p_payload, nal[i].i_payload);
+
+    if (nal[i].i_type == NAL_SPS) { //this NAL type is SPS
+      sps_len = nal[i].i_payload - 4;
+      memcpy(sps, nal[i].p_payload+ 4, sps_len);
+      fprintf(stderr, "NAL_SPS  %s \n", sps); 
+    }else if(nal[i].i_type == NAL_PPS){
+      pps_len = nal[i].i_payload - 4;
+      memcpy(pps, nal[i].p_payload + 4, pps_len);
+      if (first == 0) {
+        send_video_sps_pps(sps, sps_len, pps, pps_len);
+        first = 1;
+      } 
+    }else{
+      struct timeval tv;
+      gettimeofday(&tv, NULL);
+      long timestamp = tv.tv_sec * 1000000 + tv.tv_usec;
+      send_rtmp_video(nal[i].p_payload,x264_len - result,timestamp) ;
+
+    }
     p_out += nal[i].i_payload;
     result += nal[i].i_payload;
+
   }
 
-  writ_file(x264_buffer, result);
+  lastBufferSize = result;
+  writ_x264_encoded(x264_buffer, result);
 
   free(yuvframe);
 }
@@ -136,33 +172,21 @@ void yuyv_to_i420(const unsigned char *in, unsigned char *out, unsigned int widt
   //丢弃偶数行 u v
   for(i=0; i<yuv422_length; i+=2)
   {
-
     *(y+y_index) = *(in+i);
-
     y_index++;
-
   }
 
   for(i=0; i<height; i+=2)
   {
-
     base_h = i*width*2;
-
     for(j=base_h+1; j<base_h+width*2; j+=2)
-
     {
-
       if(is_u)
       {
-
         *(u+u_index) = *(in+j);
-
         u_index++;
-
         is_u = 0;
-
       }
-
       else
       {
         *(v+v_index) = *(in+j);

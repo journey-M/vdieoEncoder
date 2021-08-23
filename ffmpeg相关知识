@@ -1,0 +1,21 @@
+
+ffmpeg -re -i VID_20191005_150211.mp4 -vcodec copy -acodec copy -f flv rtmp://149.28.87.78:8001/cctvf/123
+
+ffplay rtmp://149.28.87.78:8001/cctvf/123
+
+CCTV-1综合:rtmp://58.200.131.2:1935/livetv/cctv1
+https://blog.csdn.net/yingyemin/article/details/107616760?utm_medium=distribute.pc_aggpage_search_result.none-task-blog-2~all~sobaiduend~default-1-107616760.nonecase&utm_term=rtmp%20%E6%B9%96%E5%8D%97%E5%8D%AB%E8%A7%86&spm=1000.2123.3001.4430
+
+fle文件格式：
+https://blog.csdn.net/leixiaohua1020/article/details/17934487
+
+
+播放YUV420P
+
+ffplay -i test.yuv -pix_fmt yuv420p -s 768x422
+
+
+推送 rtmp流
+ffmpeg -re -i 1.mp4 -vcodec copy -acodec copy -f flv -y rtmp://45.32.29.118:1935/live/123
+ffplay rtmp://45.32.29.118:1935/live/123
+
